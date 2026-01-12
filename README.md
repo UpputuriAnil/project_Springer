@@ -1,13 +1,16 @@
-# Sales Dashboard
+# 📊 Sales Dashboard
 
-A modern, interactive sales dashboard built with Next.js, TypeScript, and Tailwind CSS. This application visualizes sales data across multiple years with various chart types and interactive features.
+A modern, responsive sales analytics dashboard built with Next.js 14, TypeScript, and Tailwind CSS. Visualize and analyze your sales data with interactive charts and real-time metrics.
 
-## Features
+## 🚀 Features
 
 - **Interactive Charts**: Switch between line, bar, and pie charts
-- **Yearly Comparison**: View sales data for 2022, 2023, and 2024
-- **Responsive Design**: Works on desktop and mobile devices
-- **Custom Filtering**: Filter sales data with a threshold slider
+- **Multi-Year Data**: View and compare sales data for 2022, 2023, and 2024
+- **Responsive Design**: Fully responsive layout that works on all devices
+- **Data Filtering**: Customize data views with interactive filters
+- **Performance Metrics**: Track key sales KPIs and growth metrics
+- **Modern UI**: Clean, intuitive interface with dark mode support
+- **Type Safety**: Built with TypeScript for better developer experience
 - **Performance Metrics**: View key sales metrics at a glance
 
 ## Getting Started
