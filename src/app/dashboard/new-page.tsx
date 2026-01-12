@@ -109,22 +109,40 @@ export default function DashboardPage() {
   // Get available years for the filter
   const availableYears = getAvailableYears();
 
-  // Get yearly summary for the selected year with type safety
+  // Get yearly summaries for growth calculation
   const yearlySummary = useMemo(() => {
     return getYearlySummary(selectedYear);
   }, [getYearlySummary, selectedYear]);
 
+  // Calculate growth rate
+  const growthRate = useMemo(() => {
+    if (!yearlySummary) return 0;
+    const prevYear = selectedYear > 2022 ? (selectedYear - 1) as Year : null;
+    if (!prevYear) return 0;
+    
+    const prevYearData = getYearlySummary(prevYear);
+    if (!prevYearData || prevYearData.totalRevenue === 0) return 0;
+    
+    return ((yearlySummary.totalRevenue - prevYearData.totalRevenue) / prevYearData.totalRevenue) * 100;
+  }, [yearlySummary, selectedYear, getYearlySummary]);
+
   // Handle refresh button click
-  const handleRefresh = useCallback(() => {
+  const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    refreshData().finally(() => {
+    try {
+      await refreshData();
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
       setIsRefreshing(false);
-    });
+    }
   }, [refreshData]);
 
-  // Handle year change in the chart
+  // Handle year change in the chart with type safety
   const handleYearChange = useCallback((year: number) => {
-    setSelectedYear(year);
+    if ([2022, 2023, 2024].includes(year)) {
+      setSelectedYear(year as Year);
+    }
   }, []);
 
   // Handle chart type change
@@ -218,7 +236,7 @@ export default function DashboardPage() {
                     </p>
                     <div className="mt-1 flex items-center text-sm text-green-600">
                       <ArrowUp className="h-4 w-4 mr-1" />
-                      <span>{yearlySummary?.growthRate ? `${yearlySummary.growthRate}%` : 'N/A'}</span>
+                      <span>{growthRate.toFixed(1)}%</span>
                     </div>
                   </div>
                 </div>
@@ -302,20 +320,12 @@ export default function DashboardPage() {
                     <select
                       value={selectedYear}
                       onChange={(e) => handleYearChange(Number(e.target.value))}
-                      className="text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                      className="text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mr-2"
                     >
                       {availableYears.map(year => (
                         <option key={year} value={year}>{year}</option>
                       ))}
                     </select>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleRefresh}
-                      disabled={isRefreshing || isLoading}
-                    >
-                      {isRefreshing ? 'Refreshing...' : <RefreshCw className="w-4 h-4" />}
-                    </Button>
                     <Button
                       variant={chartType === 'line' ? 'default' : 'outline'}
                       size="sm"
@@ -377,7 +387,7 @@ export default function DashboardPage() {
                         <TableCell>{order.customer}</TableCell>
                         <TableCell>{formatCurrency(order.amount)}</TableCell>
                         <TableCell>
-                          <Badge variant={order.status === 'completed' ? 'success' : order.status === 'processing' ? 'warning' : 'default'}>
+                          <Badge variant={order.status === 'completed' ? 'default' : order.status === 'processing' ? 'secondary' : 'outline'}>
                             {order.status}
                           </Badge>
                         </TableCell>
