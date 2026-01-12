@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
+import { Year } from '@/types/sales';
 import dynamic from 'next/dynamic';
 
 // Import UI components
@@ -98,7 +99,7 @@ const customerMetrics: CustomerMetrics = {
 
 export default function DashboardPage() {
   const [chartType, setChartType] = useState<'line' | 'bar' | 'pie'>('line');
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState<Year>(2023); // Default to 2023
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [salesThreshold, setSalesThreshold] = useState<number>(1000);
 
@@ -108,8 +109,10 @@ export default function DashboardPage() {
   // Get available years for the filter
   const availableYears = getAvailableYears();
 
-  // Get yearly summary for the selected year
-  const yearlySummary = getYearlySummary(selectedYear);
+  // Get yearly summary for the selected year with type safety
+  const yearlySummary = useMemo(() => {
+    return getYearlySummary(selectedYear);
+  }, [getYearlySummary, selectedYear]);
 
   // Handle refresh button click
   const handleRefresh = useCallback(() => {
