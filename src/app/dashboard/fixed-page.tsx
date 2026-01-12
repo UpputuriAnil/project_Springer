@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import { Year } from '@/hooks/useSalesData';
 
 // Import UI components
 import { 
@@ -98,7 +99,7 @@ const customerMetrics: CustomerMetrics = {
 
 export default function DashboardPage() {
   const [chartType, setChartType] = useState<'line' | 'bar' | 'pie'>('line');
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState<Year>(2023);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [salesThreshold, setSalesThreshold] = useState<number>(1000);
 
@@ -108,20 +109,33 @@ export default function DashboardPage() {
   // Get available years for the filter
   const availableYears = getAvailableYears();
 
-  // Get yearly summary for the selected year
+  // Get yearly summaries for the selected year and previous year
   const yearlySummary = getYearlySummary(selectedYear);
+  const previousYearSummary = getYearlySummary((selectedYear - 1) as Year);
+  
+  // Calculate growth rate if we have data for both years
+  const growthRate = yearlySummary && previousYearSummary && previousYearSummary.totalRevenue > 0
+    ? ((yearlySummary.totalRevenue - previousYearSummary.totalRevenue) / previousYearSummary.totalRevenue) * 100
+    : 0;
 
   // Handle refresh button click
-  const handleRefresh = useCallback(() => {
+  const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    refreshData().finally(() => {
+    try {
+      await refreshData();
+    } finally {
       setIsRefreshing(false);
-    });
+    }
   }, [refreshData]);
 
   // Handle year change in the chart
   const handleYearChange = useCallback((year: number) => {
-    setSelectedYear(year);
+    // Ensure the year is one of the allowed values
+    if ([2022, 2023, 2024].includes(year)) {
+      setSelectedYear(year as Year);
+    } else {
+      setSelectedYear(2023); // Default to 2023 if invalid year
+    }
   }, []);
 
   // Handle chart type change
@@ -215,7 +229,7 @@ export default function DashboardPage() {
                     </p>
                     <div className="mt-1 flex items-center text-sm text-green-600">
                       <ArrowUp className="h-4 w-4 mr-1" />
-                      <span>{yearlySummary?.growthRate ? `${yearlySummary.growthRate}%` : 'N/A'}</span>
+                      <span>{growthRate.toFixed(1)}%</span>
                     </div>
                   </div>
                 </div>
